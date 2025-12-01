@@ -1,0 +1,105 @@
+# 🚀 HTTP Client
+
+**Modern HTTP client for Python with full type safety.** Built on `httpx` + `pydantic`.
+
+## ✨ Features
+- ✅ **Full type safety** with Pydantic v2
+- 🔄 **Auto retry** with tenacity
+- 🔐 **Bearer auth** included
+- 📦 **Clean API** – simple methods
+
+## ⚡ Quick Start
+
+```python
+from http_client import HttpClient
+from http_client.models import Pet
+
+# 1. Create client
+client = HttpClient("https://petstore.swagger.io/v2")
+
+# 2. Create model
+pet = Pet(
+    id=123,
+    name="Fluffy",
+    photo_urls=["photo.jpg"],
+    status="available"
+)
+
+# 3. Make request
+created = client.post(
+    "/pet",
+    request_model=pet,      # 📤 Send as JSON
+    response_model=Pet,     # 📥 Validate response
+    expected_status=200     # 🎯 Check status
+)
+
+print(f"Created: {created.name}")  # ✅ Typed response
+```
+
+## 📦 Installation
+
+```bash
+
+pip install httpx pydantic tenacity
+
+# Clone repo and use
+```
+
+## 🔧 Usage
+
+### Basic Client
+```python
+from http_client import HttpClient
+
+client = HttpClient(
+    base_url="https://api.example.com",
+    auth_token="your-token",
+    timeout=30.0
+)
+
+# GET with validation
+user = client.get("/users/1", response_model=User)
+
+# POST with data
+result = client.post("/items", request_model=item)
+```
+
+### With Retry Logic
+```python
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+retry_decorator = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(1)
+)
+
+client = HttpClient(
+    base_url="https://api.example.com",
+    retry_decorator=retry_decorator
+)
+```
+
+## 🎯 API
+
+| Method | Example |
+|--------|---------|
+| `GET` | `client.get("/users", response_model=List[User])` |
+| `POST` | `client.post("/users", request_model=user)` |
+| `PUT` | `client.put("/users/1", request_model=update)` |
+| `PATCH` | `client.patch("/users/1", request_model=partial)` |
+| `DELETE` | `client.delete("/users/1", expected_status=204)` |
+
+## 🔧 Custom Models
+
+```python
+from pydantic import BaseModel, Field
+
+class User(BaseModel):
+    id: int
+    name: str
+    email: str = Field(alias="userEmail")  # 🔄 Auto convert
+    roles: list[str] = []
+    
+    class Config:
+        populate_by_name = True  # 🎯 Support aliases
+```
